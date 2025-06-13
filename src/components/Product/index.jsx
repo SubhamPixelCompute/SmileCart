@@ -25,15 +25,7 @@ const Product = () => {
     );
   }
 
-  const {
-    name,
-    description,
-    mrp,
-    offerPrice,
-    imageUrls,
-    imageUrl,
-    availableQuantity,
-  } = product;
+  const { name, description, mrp, offerPrice, imageUrls, imageUrl } = product;
   const totalDiscounts = mrp - offerPrice;
   const discountPercentage = ((totalDiscounts / mrp) * 100).toFixed(1);
 
@@ -59,7 +51,7 @@ const Product = () => {
             {discountPercentage}% off
           </Typography>
           <div className="flex space-x-10">
-            <AddToCart {...{ availableQuantity, slug }} />
+            <AddToCart {...{ slug }} />
             <Button
               className="bg-neutral-800 hover:bg-neutral-950"
               label="Buy now"

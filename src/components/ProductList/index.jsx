@@ -2,39 +2,55 @@ import { useState } from "react";
 
 import { PageLoader } from "components/commons";
 import Header from "components/commons/Header";
+import { buildUrl } from "components/utils/url";
 import { useFetchProducts } from "hooks/reactQuery/useProductsApi";
-import useDebounce from "hooks/useDebounce";
+import useFuncDebounce from "hooks/useFuncDebounce";
+import useQueryParams from "hooks/useQueryParams";
+import { filterNonNull } from "neetocist";
 import { Search } from "neetoicons";
 import { Input, NoData, Pagination } from "neetoui";
-import { isEmpty } from "ramda";
+import { isEmpty, mergeLeft } from "ramda";
+import { useHistory } from "react-router-dom";
+import routes from "routes";
 
 import { DEFAULT_PAGE_SIZE, DEFAULT_PAGE_INDEX } from "./constants";
 import ProductListItem from "./ProductListItem";
 
 const ProductList = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchKey, setSearchKey] = useState("");
-  const debouncedSearchKey = useDebounce(searchKey);
+  const { page, pageSize, searchTerm = "" } = useQueryParams();
+  const [searchKey, setSearchKey] = useState(searchTerm);
+
+  const history = useHistory();
+  const queryParams = useQueryParams();
+
+  const handlePageNavigation = page => {
+    history.replace(
+      buildUrl(
+        routes.products.index,
+        mergeLeft({ page, pageSize: DEFAULT_PAGE_SIZE }, queryParams)
+      )
+    );
+  };
+
+  const updateQueryParams = useFuncDebounce(value => {
+    const params = {
+      page: DEFAULT_PAGE_INDEX,
+      pageSize: DEFAULT_PAGE_SIZE,
+      searchTerm: value || null,
+    };
+
+    history.replace(buildUrl(routes.products.index, filterNonNull(params)));
+  });
 
   const { data: { products = [], totalProductsCount } = {}, isLoading } =
     useFetchProducts({
-      searchTerm: debouncedSearchKey,
-      page: currentPage,
-      pageSize: DEFAULT_PAGE_SIZE,
+      searchTerm: searchKey,
+      page: Number(page) || DEFAULT_PAGE_INDEX,
+      pageSize: Number(pageSize) || DEFAULT_PAGE_SIZE,
     });
 
   if (isLoading) {
-    return (
-      <PageLoader
-        prefix={<Search />}
-        type="search"
-        value={searchKey}
-        onChange={event => {
-          setSearchKey(event.target.value);
-          setCurrentPage(DEFAULT_PAGE_INDEX);
-        }}
-      />
-    );
+    return <PageLoader prefix={<Search />} type="search" value={searchKey} />;
   }
 
   return (
@@ -51,8 +67,9 @@ const ProductList = () => {
                 prefix={<Search />}
                 type="search"
                 value={searchKey}
-                onChange={e => {
-                  setSearchKey(e.target.value);
+                onChange={({ target: { value } }) => {
+                  updateQueryParams(value);
+                  setSearchKey(value);
                 }}
               />
             }
@@ -76,9 +93,11 @@ const ProductList = () => {
       <div className="mb-5 self-end">
         <Pagination
           count={totalProductsCount}
-          navigate={page => setCurrentPage(page)}
-          pageNo={currentPage || DEFAULT_PAGE_INDEX}
-          pageSize={DEFAULT_PAGE_SIZE}
+          pageNo={Number(page) || DEFAULT_PAGE_INDEX}
+          pageSize={Number(pageSize) || DEFAULT_PAGE_SIZE}
+          navigate={page => {
+            handlePageNavigation(page);
+          }}
         />
       </div>
     </>
