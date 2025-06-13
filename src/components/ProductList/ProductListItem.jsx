@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 import AddToCart from "components/commons/AddToCart";
 import { buildUrl } from "components/utils/url";
 import { Typography } from "neetoui";
@@ -17,4 +19,4 @@ const ProductListItem = ({ imageUrl, name, offerPrice, slug }) => (
     <AddToCart {...{ slug }} />
   </Link>
 );
-export default ProductListItem;
+export default memo(ProductListItem);
