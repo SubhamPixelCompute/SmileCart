@@ -15,7 +15,7 @@ const App = () => (
       <NavLink exact activeClassName="underline font-bold" to="/">
         Home
       </NavLink>
-      <NavLink exact activeClassName="underline font-bold" to="/product">
+      <NavLink exact activeClassName="underline font-bold" to="/products">
         Product
       </NavLink>
       <NavLink to={routes.cart}>
