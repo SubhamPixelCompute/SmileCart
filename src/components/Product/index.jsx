@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
-
-import productsApi from "apis/products";
 import Header from "components/commons/Header";
 import { AddToCart, PageNotFound } from "components/commons/index";
+import { useShowProduct } from "hooks/reactQuery/useProductsApi";
 import useSelectedQuantity from "hooks/useSelectedQuantity";
 import { Button, Spinner, Typography } from "neetoui";
 import { append, isNotNil } from "ramda";
@@ -12,28 +10,10 @@ import routes from "routes";
 import Carousel from "./Carousel";
 
 const Product = () => {
-  const [product, setProduct] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
-
   const { slug } = useParams();
   const { selectedQuantity, setSelectedQuantity } = useSelectedQuantity(slug);
 
-  const fetchProduct = async () => {
-    try {
-      const response = await productsApi.show(slug);
-      setProduct(response);
-    } catch (error) {
-      setIsError(true);
-      console.log("An error occurred:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProduct();
-  }, []);
+  const { data: product = {}, isLoading, isError } = useShowProduct(slug);
 
   if (isError) return <PageNotFound />;
 
